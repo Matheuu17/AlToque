@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Count, Q
 from decimal import Decimal
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from .forms import PedidoForm, ProductoForm
@@ -99,8 +100,8 @@ def pedidos_completed(request):
         
     from django.db.models import Sum
     today = timezone.localtime(timezone.now()).date()
-    total_servidas = Pedido.objects.filter(user=request.user, estado='COBRADO', datecompleted__date=today).count()
-    propinas_ganadas = Pedido.objects.filter(user=request.user, estado='COBRADO').aggregate(total_propina=Sum('propina'))['total_propina'] or 0.00
+    total_servidas = Pedido.objects.filter(user=request.user, estado__in=['COBRADO', 'PAGADO'], datecompleted__date=today).count()
+    propinas_ganadas = Pedido.objects.filter(user=request.user, estado__in=['COBRADO', 'PAGADO']).aggregate(total_propina=Sum('propina'))['total_propina'] or 0.00
     
     return render(request, 'panel_mozo.html', {
         'pedidos': pedidos,
@@ -366,10 +367,10 @@ def dashboard(request):
         # Calcular propinas y órdenes cobradas hoy por este mozo
         from django.db.models import Sum
         today = timezone.localtime(timezone.now()).date()
-        total_servidas = Pedido.objects.filter(user=request.user, estado='COBRADO', datecompleted__date=today).count()
+        total_servidas = Pedido.objects.filter(user=request.user, estado__in=['COBRADO', 'PAGADO'], datecompleted__date=today).count()
         context['total_servidas'] = total_servidas
         
-        propinas_ganadas = Pedido.objects.filter(user=request.user, estado='COBRADO').aggregate(total_propina=Sum('propina'))['total_propina'] or 0.00
+        propinas_ganadas = Pedido.objects.filter(user=request.user, estado__in=['COBRADO', 'PAGADO']).aggregate(total_propina=Sum('propina'))['total_propina'] or 0.00
         context['propinas_ganadas'] = propinas_ganadas
     elif role == 2:
         # Clientes ven sus pedidos activos y también historial/stats
@@ -631,7 +632,7 @@ def generar_qr_yape(request):
                         'payer': {
                             'email': 'mozo@restaurante.com'
                         },
-                        'notification_url': 'https://applying-letter-counties-schedule.trycloudflare.com/webhook/mercadopago/',
+                        'notification_url': request.build_absolute_uri(reverse('webhook_mercadopago')),
                         'external_reference': str(pedido.id),
                         'metadata': {
                             'pedido_id': str(pedido.id)
@@ -699,6 +700,11 @@ def webhook_mercadopago(request):
                 pass
 
         print("[WEBHOOK] Data parseada:", data)
+
+        # Si el payload directo indica que el pago fue rechazado, evitamos procesar y bypassear
+        if isinstance(data, dict) and data.get('status') == 'rejected':
+            print("[WEBHOOK] Pago rechazado según payload. Sin acción.")
+            return HttpResponse("No processing needed", status=200)
 
         # 2. Extraer el payment_id de TODAS las formas posibles que MP usa
         payment_id = None

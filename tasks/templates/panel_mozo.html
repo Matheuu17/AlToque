@@ -15,9 +15,9 @@
 
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  
+
     <!-- CSS -->
-    <link rel="stylesheet" href="{% static 'tasks/css/styles.css' %}?v=1.3">
+    <link rel="stylesheet" href="{% static 'tasks/css/styles.css' %}?v=1.4">
 
 </head>
 
@@ -163,33 +163,32 @@
                                     Entregado
                                 </span>
                                 {% else %}
-                                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0;">
-                                    <!-- Formulario de cobro en línea para el Mozo -->
-                                    <form onsubmit="handleCobrarSubmit(event)"
-                                        action="{% url 'update' pedido.id 'COBRADO' %}" method="POST"
-                                        style="display: flex; gap: 8px; align-items: center; margin: 0; flex-wrap: wrap;">
-                                        {% csrf_token %}
-                                        <div
-                                            style="position: relative; display: flex; align-items: center; width: 110px;">
-                                            <span
-                                                style="position: absolute; left: 8px; color: var(--on-surface-variant); font-size: 14px; font-weight: 700;">S/.</span>
-                                            <input type="number" id="propina-input-{{ pedido.id }}" name="propina"
-                                                placeholder="Propina" min="0" step="0.01" value="0"
-                                                style="padding: 10px 10px 10px 28px; border-radius: var(--radius-md); border: 1px solid var(--outline-variant); width: 100%; font-size: 14px; font-family: inherit; font-weight: 700; box-sizing: border-box;">
-                                        </div>
-                                        <button type="submit" class="btn-action-success">
-                                            <span class="material-symbols-outlined"
-                                                style="font-size: 18px;">payments</span>
-                                            Cobrar
-                                        </button>
-                                    </form>
-                                    <button type="button" class="btn-action-primary"
-                                        style="background-color: #742284; box-shadow: 0 2px 6px rgba(116, 34, 132, 0.2);"
-                                        onclick="solicitarYape({{ pedido.id }})">
-                                        <span class="material-symbols-outlined"
-                                            style="font-size: 18px;">qr_code_2</span>
-                                        Yape QR
-                                    </button>
+                                <div style="display: inline-flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 0;">
+                                     <!-- Formulario de cobro en línea para el Mozo -->
+                                     <form onsubmit="handleCobrarSubmit(event)"
+                                         action="{% url 'update' pedido.id 'COBRADO' %}" method="POST"
+                                         style="display: inline-flex; gap: 12px; align-items: center; margin: 0; flex-wrap: wrap;">
+                                         {% csrf_token %}
+                                         <div
+                                             style="position: relative; display: flex; align-items: center; width: 110px;">
+                                             <span
+                                                 style="position: absolute; left: 8px; color: var(--on-surface-variant); font-size: 14px; font-weight: 700;">S/.</span>
+                                             <input type="number" id="propina-input-{{ pedido.id }}" name="propina"
+                                                 placeholder="Propina" min="0" step="0.01" value="0"
+                                                 style="padding: 10px 10px 10px 28px; border-radius: var(--radius-md); border: 1px solid var(--outline-variant); width: 100%; font-size: 14px; font-family: inherit; font-weight: 700; box-sizing: border-box;">
+                                         </div>
+                                         <button type="submit" class="btn-action-success">
+                                             <span class="material-symbols-outlined"
+                                                 style="font-size: 18px;">payments</span>
+                                             Cobrar
+                                         </button>
+                                     </form>
+                                     <button type="button" class="btn-action-primary"
+                                         onclick="solicitarYape({{ pedido.id }})">
+                                         <span class="material-symbols-outlined"
+                                             style="font-size: 18px;">qr_code_2</span>
+                                         Yape QR
+                                     </button>
                                 </div>
                                 {% endif %}
                                 {% elif pedido.estado == 'CANCELADO' %}
@@ -257,9 +256,7 @@
                     </div>
                     <div>
                         <p style="font-size: 14px; color: var(--on-surface-variant); margin: 0;">Propinas Ganadas</p>
-                        <h3 style="font-size: 24px; font-weight: 800; margin: 0; color: var(--on-surface);">S/. {{
-                            propinas_ganadas|default:0|floatformat:2 }}
-                        </h3>
+                        <h3 style="font-size: 24px; font-weight: 800; margin: 0; color: var(--on-surface);">S/. {{ propinas_ganadas|default:0|floatformat:2 }}</h3>
                     </div>
                 </div>
             </div>
@@ -318,8 +315,8 @@
                     <div
                         style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; max-h: 200px; overflow-y: auto; padding: 12px; background: var(--surface-container-low); border-radius: var(--radius-md); border: 1px solid var(--outline-variant);">
                         {% for prod in form_pedido.fields.productos.queryset %}
-                        <label class="checkbox-card {% if not prod.disponible %}disabled-card{% endif %}" {% if not prod.disponible %}style="opacity: 0.55; cursor: not-allowed; background-color: #f3f4f6; border-color: #e5e7eb; color: #9ca3af; pointer-events: none;"{% endif %}>
-                            <input type="checkbox" name="productos" value="{{ prod.id }}" {% if not prod.disponible %}disabled style="cursor: not-allowed; accent-color: #9ca3af;"{% endif %}>
+                        <label class="checkbox-card {% if not prod.disponible %}disabled-card{% endif %}">
+                            <input type="checkbox" name="productos" value="{{ prod.id }}" {% if not prod.disponible %}disabled{% endif %}>
                             <span>
                                 {{ prod.nombre }}
                                 <small style="display: block; font-size: 11px; font-weight: bold; margin-top: 2px;">
